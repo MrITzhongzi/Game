@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #game {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #000;
+            background: url(images/sky.png);
+            overflow: hidden;
+            position: relative;
+        }
+
+        #game .pipeD {
+            background: url(images/pipe1.png) top center;
+            position: absolute;
+        }
+
+        #game .pipeU {
+            background: url(images/pipe2.png) bottom center;
+            position: absolute;
+        }
+
+        #bird {
+            width: 34px;
+            height: 25px;
+            /*border-radius: 10px;*/
+            /*background-color: red;*/
+            position: absolute;
+            top: 100px;
+            left: 100px;
+            background: url(images/birds.png) -8px -10px no-repeat;
+        }
+
+    </style>
+</head>
+<body>
+<div id="game">
+    <div id="bird"></div>
+</div>
+<script>
+    var timer = null;
+    var birdEle = document.getElementById("bird");
+    var game = document.getElementById("game");
+    var gameover = false;
+    var g = 1;
+    //1.寻找对象
+    var bird = {
+        x: birdEle.offsetLeft,//水平位置
+        y: birdEle.offsetTop,//竖直位置
+        speedX: 5,//水平速度（通过移动背景图展现）
+        speedY: 0,//竖直速度
+        entity: birdEle//实体
+    };
+    var sky = {
+        x: 0//水平位置
+    };
+    //2.移动背景
+    timer = setInterval(function () {
+        if (!gameover) {
+            sky.x = sky.x - bird.speedX;
+            game.style.backgroundPositionX = sky.x + "px";
+            //3.小鸟起飞
+            bird.speedY = bird.speedY + g;
+            var step = bird.speedY;
+            bird.y = bird.y + step;
+            //4.碰撞检测
+            //掉到地上 小鸟竖直位置的最大值 = game的高度-小鸟的高度
+            if (bird.y > game.offsetHeight - birdEle.offsetHeight) {
+                bird.y = game.offsetHeight - birdEle.offsetHeight;
+                //gameover = true;
+                stop();
+            }
+            //顶到天上 小鸟竖直位置<0
+            if (bird.y < 0) {
+                bird.y = 0;
+                //gameover = true;
+                stop();
+            }
+            bird.entity.style.top = bird.y + "px";
+        }
+    }, 25);
+
+    document.onclick = function () {
+        bird.speedY = -10;
+    };
+    document.onkeyup = function (e) {
+        if (e.keyCode === 87) {
+            bird.speedY = -10;
+        }
+    }
+
+    //5.顶部管子 每组管子的水平位置 可以当作参数传入
+    function Pipe(positonX) {
+        this.x = positonX;
+        this.upPipeY = 0;
+        this.width = 52;
+        this.upPipeH = parseInt(Math.random() * 175 + 100);
+        //6.底部管子
+        this.downPipeY = this.upPipeH + 200;
+        this.downPipeH = game.offsetHeight - this.downPipeY;
+        var divUp = document.createElement("div");
+        divUp.className = "pipeU";
+        divUp.style.width = this.width + "px";
+        divUp.style.height = this.upPipeH + "px";
+        divUp.style.left = this.x + "px";
+        divUp.style.top = this.upPipeY + "px";
+        game.appendChild(divUp);
+        var divDown = document.createElement("div");
+        divDown.className = "pipeD";
+        divDown.style.width = this.width + "px";
+        divDown.style.height = this.downPipeH + "px";
+        divDown.style.left = this.x + "px";
+        divDown.style.top = this.downPipeY + "px";
+        game.appendChild(divDown);
+        //console.log(this);
+        var that = this;
+        //7.移动管子
+        this.timer = setInterval(function () {
+            that.x = that.x - 1;
+            if (that.x < -52) {
+                that.x = 800;
+            }
+            if (!gameover) {
+                divUp.style.left = that.x + "px";
+                divDown.style.left = that.x + "px";
+            }
+            console.log("代码还在执行");
+            //8.碰撞检测
+            //分析和底部管子的碰撞
+            var downCrash = (bird.x + 34 > that.x) && (bird.x < that.x + 52) && (bird.y + 25 > that.downPipeY);
+            var upCrash = (bird.x + 34 > that.x) && (bird.x < that.x + 52) && (bird.y < that.upPipeH);
+            if (downCrash || upCrash) {
+                //gameover = true;
+                stop();
+            }
+        }, 10);
+    }
+    //创建对象
+    var arr = [];
+    for (var i = 0; i < 4; i++) {
+        arr[i] = new Pipe(400 + i * 200);//把每一个管子保存在数组里
+    }
+
+    //9.最终完善
+    function stop() {
+        gameover = true;
+        //清理小鸟和天空的定时器
+        clearInterval(timer);
+        //清理所有管子的定时器
+        //遍历数组 取出每个管子 清理定时器
+        for (var i = 0; i < arr.length; i++) {
+            clearInterval(arr[i].timer);
+        }
+    }
+</script>
+</body>
+</html>
