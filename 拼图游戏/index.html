@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        /*#piclist {
+            width: 600px;
+            height: 600px;
+            background-color: green;
+        }*/
+        .nitem {
+            /*width: 200px;*/
+            /*height: 200px;*/
+            float: left;
+            background: url(imgs/fengnv.jpg) 0px 0px no-repeat;
+            -webkit-background-size: 600px 600px;
+            background-size: 600px 600px;
+            font-size: 33px;
+            color: red;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /*.nitem:nth-child(2){
+            background-position: -200px 0;
+        }
+        .nitem:nth-child(3){
+            background-position: -400px 0;
+        }
+        .nitem:nth-child(4){
+            background-position: 0px -200px;
+        }
+        .nitem:nth-child(5){
+            background-position: -200px -200px;
+        }
+        .nitem:nth-child(6){
+            background-position: -400px -200px;
+        }
+        .nitem:nth-child(7){
+            background-position: 0px -400px;
+        }
+        .nitem:nth-child(8){
+            background-position: -200px -400px;
+        }
+        .nitem:nth-child(9){
+            background-position: -400px -400px;
+        }*/
+
+        .fn-clear {
+            clear: both;
+            height: 0;
+            line-height: 0px;
+            font-size: 0px;
+        }
+    </style>
+</head>
+<body>
+<div id="appbox" :style="{ width:width+'px',height:height+'px' }">
+    <div id="piclist">
+        <div class="nitem"
+             v-for="(item,index) in itemlist"
+             :class="{remove : index === 0}"
+             :index="index "
+             v-bind:style="{
+                'backgroundPosition':-px(index)+'px -' + py(index) + 'px',
+                 width : width / rows + 'px',
+                 height : height / cols + 'px'}">{{index}}
+        </div>
+    </div>
+</div>
+</body>
+<script src=js/jquery.min.js></script>
+<script src=js/vue.min.js></script>
+<script>
+    var olen = 0, oi = 0, cindex = 0, oa = new Array(), oindex = 0, listarray = new Array();
+    var vm = new Vue({
+        el: "#appbox",
+        data: {
+            itemlist: [],
+            rows: 3,
+            cols: 3,
+            width: 600,
+            height: 600,
+        },
+        methods: {
+            px(index){
+                return (index % this.rows) * (this.width / this.rows)
+            },
+            py (index){
+                return parseInt((index / this.cols)) * (this.height / this.cols);
+            }
+        }
+    });
+    for (var i = 0; i < vm.rows * vm.cols; i++) {
+        vm.itemlist.push(i);
+    }
+
+    function getrow(index) {
+        return parseInt(index / vm.cols);
+    }
+    function getcols(index) {
+        return index % vm.rows;
+    }
+    function getBound(index) {
+        var left = index - 1;
+        var right = index + 1;
+        var top = index - vm.rows;
+        var bottom = index + vm.rows;
+        var len = vm.itemlist.length; //总长度
+
+        var currentRow = getrow(index);
+        var currentCol = getcols(index);
+        var roundArr = new Array();
+
+        if (left >= 0 && left < len && getrow(left) == currentRow) {
+            roundArr.push(left);
+        }
+        if (right >= 0 && right < len && getrow(right) == currentRow) {
+            roundArr.push(right);
+        }
+        if (top >= 0 && top < len && getcols(top) == currentCol) {
+            roundArr.push(top);
+        }
+        if (bottom >= 0 && bottom < len && getcols(bottom) == currentCol) {
+            roundArr.push(bottom);
+        }
+
+        return roundArr;
+    }
+    function box_switch(i, j) {
+        var iobj = $('#piclist .nitem').eq(i);
+        var jobj = $('#piclist .nitem').eq(j);
+        var tobj = iobj.clone();
+
+        jobj.after(tobj);
+        iobj.replaceWith(jobj);
+    }
+
+    vm.$nextTick(function () {
+        $('.remove').css({
+            background: 'none',
+            backgroundColor: 'green'
+        });
+    });
+
+    function box_rand(times) {
+        for (var i = 0; i < times; i++) {
+            oindex = $('.remove').index();
+            oa = getBound(oindex);
+            olen = oa.length;
+            oi = Math.floor(Math.random() * olen);
+            cindex = oa[oi];
+            box_switch(cindex, oindex);
+        }
+        listarray.length = 0;
+        $.each($('.nitem'), function (i, item) {
+            listarray.push($(item).attr('index'));
+        });
+        if (listarray.join(',') == vm.itemlist.join(',')) {
+            box_rand(times);
+        }
+    }
+    $(function () {
+        //打乱图片
+        box_rand(20);
+
+        $('.nitem').on('click   ', function () {
+            var cindex = $(this).index();
+            var oindex = $('.remove').index();
+            var oRound = getBound(oindex); //空盒子四周的索引
+
+            if ($.inArray(cindex, oRound) < 0) { //不在
+                return false;
+            } else {
+                box_switch(oindex, cindex);
+
+                var listArray = new Array();
+                $.each($('.nitem'), function (i, item) {
+                    listArray.push($(item).attr('index'));
+                })
+                if (listArray.join(',') == vm.itemlist.join(',')) {
+                    alert('success')
+                } else {
+                    console.log('失败')
+                }
+            }
+        });
+    })
+</script>
+</html>
