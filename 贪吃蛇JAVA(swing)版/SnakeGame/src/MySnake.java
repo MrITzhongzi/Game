@@ -15,13 +15,12 @@ public class MySnake {
     public static void main(String[] args) {
         JFrame jFrame = new JFrame();
         MySnake mySnake = new MySnake();
-        mySnake.init(jFrame, 800, 600);
+        mySnake.init(jFrame, 900, 700);
 
         final MySnakePanel mySnakePanel = new MySnakePanel();
         mySnakePanel.initMap();
         mySnakePanel.initSnake();
         mySnakePanel.createFood();
-//        mySnakePanel.move();
         jFrame.add(mySnakePanel);
         jFrame.addKeyListener(new KeyAdapter() {
             @Override
@@ -55,7 +54,6 @@ public class MySnake {
                 checkCrash(mySnakePanel);
             }
         }).start();
-
     }
 
     /**
@@ -70,9 +68,31 @@ public class MySnake {
             String message = "GameOver!";
             JOptionPane.showMessageDialog(mySnakePanel, message);
             System.exit(0);
+        } else if(checkCrashSelf(mySnakePanel)){
+            String message = "GameOver!";
+            JOptionPane.showMessageDialog(mySnakePanel, message);
+            System.exit(0);
         } else {
             mySnakePanel.move();
         }
+    }
+
+    public static boolean checkCrashSelf(MySnakePanel mySnakePanel) {
+        Point snakeHead = mySnakePanel.snake.getFirst();
+        LinkedList snake = mySnakePanel.snake;
+        if (mySnakePanel.currentDirection == MySnakePanel.LEFT && snake.contains(new Point(snakeHead.x - 1, snakeHead.y))) {
+            return true;
+        }
+        if (mySnakePanel.currentDirection == MySnakePanel.RIGHT && snake.contains(new Point(snakeHead.x + 1, snakeHead.y))) {
+            return true;
+        }
+        if (mySnakePanel.currentDirection == MySnakePanel.UP && snake.contains(new Point(snakeHead.x, snakeHead.y - 1))) {
+            return true;
+        }
+        if (mySnakePanel.currentDirection == MySnakePanel.DOWN && snake.contains(new Point(snakeHead.x, snakeHead.y + 1))) {
+            return true;
+        }
+        return false;
     }
 
     /***
@@ -142,10 +162,10 @@ class MySnakePanel extends JPanel {
     public void createFood() {
         Random random = new Random();
         while (true) {
-            int x = random.nextInt(Y_HEIGHT);
-            int y = random.nextInt(X_WIDTH);
+            int x = random.nextInt(X_WIDTH);
+            int y = random.nextInt(Y_HEIGHT);
             System.out.println("x: " + x + "y: " + y);
-            if (!map[x][y]) {
+            if (!map[y][x]) {
                 food = new Point(x, y);
                 break;
             }
